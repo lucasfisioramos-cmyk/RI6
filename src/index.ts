@@ -1,70 +1,93 @@
-/// <reference types="node" />
-import * as readline from "node:readline";
+// index.ts
+import * as readline from "readline";
+import Mensagens from "./Mensagens.js";
 import Calculo from "./operacoes/Calculo.js";
 import Soma from "./operacoes/Soma.js";
 import Subtracao from "./operacoes/Subtracao.js";
 import Multiplicacao from "./operacoes/Multiplicacao.js";
+import Divisao from "./operacoes/Divisao.js";
+import Potencia from "./operacoes/Potenciacao.js";
+import Radiciacao from "./operacoes/Radiciacao.js";
+import Bhaskara from "./operacoes/Bhaskara.js";
+
+declare const process: {
+  stdin: any;
+  stdout: any;
+};
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
+const mensagens = new Mensagens();
 
-const operacoes: { [key: string]: { nome: string; objeto: Calculo } } = {
-  "1": { nome: "Soma", objeto: new Soma() },
-  "2": { nome: "Subtração", objeto: new Subtracao() },
-  "3": { nome: "Multiplicação", objeto: new Multiplicacao() }
+// Mapeamento polimórfico das operações de 2 números
+const operacoesSimples: { [key: string]: Calculo } = {
+  "1": new Soma(),
+  "2": new Subtracao(),
+  "3": new Multiplicacao(),
+  "4": new Divisao(),
+  "5": new Potencia(),
+  "6": new Radiciacao()
 };
 
-function perguntar(pergunta: string): Promise<string> {
-  return new Promise((resolve) => rl.question(pergunta, resolve));
-}
-
-function exibirMenu(): void {
-  console.log("\n====== CALCULADORA CLI (POO) ======");
-  console.log("1. Somar (+)");
-  console.log("2. Subtrair (-)");
-  console.log("3. Multiplicar (*)");
-  console.log("4. Sair");
-  console.log("====================================");
+function perguntar(query: string): Promise<string> {
+  return new Promise((resolve) => rl.question(query, resolve));
 }
 
 async function loopCalculadora(): Promise<void> {
-  let executando = true;
+  let ativo = true;
 
-  while (executando) {
-    exibirMenu();
+  while (ativo) {
+    mensagens.exibirMenu();
     const opcao = await perguntar("Escolha uma opção: ");
 
-    if (opcao === "4") {
+    if (opcao === "8") {
       console.log("\nEncerrando a calculadora...");
-      executando = false;
+      ativo = false;
       rl.close();
       break;
     }
 
-    const operacaoSelecionada = operacoes[opcao];
+    if (opcao === "7") {
+      // Parte 2: Bhaskara (3 números)
+      console.log("\n--- Cálculo de Bhaskara (ax² + bx + c = 0) ---");
+      try {
+        const a = parseFloat(await perguntar("Digite o coeficiente a: "));
+        const b = parseFloat(await perguntar("Digite o coeficiente b: "));
+        const c = parseFloat(await perguntar("Digite o coeficiente c: "));
 
-    if (!operacaoSelecionada) {
+        const bhaskara = new Bhaskara();
+        const resultado = bhaskara.calcular(a, b, c);
+
+        console.log(`\nDelta (Δ): ${resultado.delta}`);
+        console.log(`x'  = ${resultado.x1}`);
+        console.log(`x'' = ${resultado.x2}`);
+      } catch (error: any) {
+        console.log(`\nErro: ${error.message}`);
+      }
+    } else if (operacoesSimples[opcao]) {
+      // Parte 1: Operações Básicas de 2 números (Polimorfismo)
+      const operacao = operacoesSimples[opcao];
+      try {
+        const n1 = parseFloat(await perguntar("Digite o primeiro número: "));
+        const n2 = parseFloat(await perguntar("Digite o segundo número: "));
+
+        if (isNaN(n1) || isNaN(n2)) {
+          console.log("\nErro: Por favor, insira valores numéricos válidos.");
+          continue;
+        }
+
+        // Chamada Polimórfica:
+        const resultado = operacao.calcular(n1, n2);
+        console.log(`\nResultado: ${resultado}`);
+      } catch (error: any) {
+        console.log(`\nErro ao calcular: ${error.message}`);
+      }
+    } else {
       console.log("\nOpção inválida! Tente novamente.");
-      continue;
     }
-
-    const entrada1 = await perguntar("Digite o primeiro número: ");
-    const entrada2 = await perguntar("Digite o segundo número: ");
-
-    const num1 = parseFloat(entrada1);
-    const num2 = parseFloat(entrada2);
-
-    if (isNaN(num1) || isNaN(num2)) {
-      console.log("\nErro: Por favor, informe números válidos.");
-      continue;
-    }
-
-    // Execução polimórfica: o método calcular() pertence ao objeto da subclasse selecionada
-    const resultado = operacaoSelecionada.objeto.calcular(num1, num2);
-    console.log(`\nResultado da ${operacaoSelecionada.nome}: ${resultado}`);
   }
 }
 
