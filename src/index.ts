@@ -10,7 +10,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-// Mapeamento polimórfico contendo apenas as 3 operações
+
 const operacoes: { [key: string]: { nome: string; objeto: Calculo } } = {
   "1": { nome: "Soma", objeto: new Soma() },
   "2": { nome: "Subtração", objeto: new Subtracao() },
