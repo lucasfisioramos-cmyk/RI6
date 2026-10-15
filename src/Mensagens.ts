@@ -1,7 +1,7 @@
 // Mensagens.ts
 export default class Mensagens {
   public exibirMenu(): void {
-    console.log("\n====== CALCULADORA RI6 (POO) ======");
+    console.log("\n====== CALCULADORA Polimórfica ======");
     console.log("1. Soma (+)");
     console.log("2. Subtração (-)");
     console.log("3. Multiplicação (*)");
